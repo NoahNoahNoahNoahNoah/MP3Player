@@ -7,12 +7,13 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2022 STMicroelectronics.
-  * All rights reserved.
+  * <h2><center>&copy; Copyright (c) 2022 STMicroelectronics.
+  * All rights reserved.</center></h2>
   *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
+  * This software component is licensed by ST under Ultimate Liberty license
+  * SLA0044, the "License"; You may not use this file except in compliance with
+  * the License. You may obtain a copy of the License at:
+  *                             www.st.com/SLA0044
   *
   ******************************************************************************
   */
@@ -83,16 +84,10 @@ void Error_Handler(void);
 #define PSRAM_A4_GPIO_Port GPIOF
 #define PSRAM_A5_Pin GPIO_PIN_5
 #define PSRAM_A5_GPIO_Port GPIOF
-#define ARD_D0_Pin GPIO_PIN_6
-#define ARD_D0_GPIO_Port GPIOF
-#define ARD_D1_Pin GPIO_PIN_7
-#define ARD_D1_GPIO_Port GPIOF
 #define QSPI_BK1_IO0_Pin GPIO_PIN_8
 #define QSPI_BK1_IO0_GPIO_Port GPIOF
 #define QSPI_BK1_IO1_Pin GPIO_PIN_9
 #define QSPI_BK1_IO1_GPIO_Port GPIOF
-#define ARD_D3_Pin GPIO_PIN_10
-#define ARD_D3_GPIO_Port GPIOF
 #define STLK_MCO_Pin GPIO_PIN_0
 #define STLK_MCO_GPIO_Port GPIOH
 #define WIFI_RST_Pin GPIO_PIN_1
@@ -259,8 +254,6 @@ void Error_Handler(void);
 #define WIFI_SPI_CSN_GPIO_Port GPIOG
 #define WIFI_DRDY_Pin GPIO_PIN_12
 #define WIFI_DRDY_GPIO_Port GPIOG
-#define ARD_D2_Pin GPIO_PIN_13
-#define ARD_D2_GPIO_Port GPIOG
 #define VCP_TX_Pin GPIO_PIN_14
 #define VCP_TX_GPIO_Port GPIOG
 #define CODEC_INT_Pin GPIO_PIN_15
@@ -292,3 +285,5 @@ void Error_Handler(void);
 #endif
 
 #endif /* __MAIN_H */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

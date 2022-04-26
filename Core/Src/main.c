@@ -6,12 +6,13 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2022 STMicroelectronics.
-  * All rights reserved.
+  * <h2><center>&copy; Copyright (c) 2022 STMicroelectronics.
+  * All rights reserved.</center></h2>
   *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
+  * This software component is licensed by ST under Ultimate Liberty license
+  * SLA0044, the "License"; You may not use this file except in compliance with
+  * the License. You may obtain a copy of the License at:
+  *                             www.st.com/SLA0044
   *
   ******************************************************************************
   */
@@ -22,7 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stm32f413h_discovery_lcd.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,7 +41,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
- ADC_HandleTypeDef hadc1;
+ADC_HandleTypeDef hadc1;
 
 DAC_HandleTypeDef hdac;
 
@@ -49,6 +50,8 @@ DFSDM_Channel_HandleTypeDef hdfsdm2_channel1;
 DFSDM_Channel_HandleTypeDef hdfsdm2_channel7;
 
 FMPI2C_HandleTypeDef hfmpi2c1;
+
+I2C_HandleTypeDef hi2c2;
 
 I2S_HandleTypeDef hi2s2;
 
@@ -80,6 +83,7 @@ static void MX_QUADSPI_Init(void);
 static void MX_SDIO_SD_Init(void);
 static void MX_UART10_Init(void);
 static void MX_USART6_UART_Init(void);
+static void MX_I2C2_Init(void);
 void MX_USB_HOST_Process(void);
 
 /* USER CODE BEGIN PFP */
@@ -131,18 +135,58 @@ int main(void)
   MX_UART10_Init();
   MX_USART6_UART_Init();
   MX_USB_HOST_Init();
+  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
+
+  MX_UART10_Init();
+  MX_USART6_UART_Init();
+  MX_I2C2_Init();
+  BSP_LCD_Init();
+  BSP_LCD_Clear(LCD_COLOR_WHITE);
+  BSP_PB_Init(BUTTON_WAKEUP, BUTTON_MODE_GPIO);
+  BSP_LCD_SetFont(&Font16);
+  BSP_LCD_SetTextColor(LCD_COLOR_RED);
+  BSP_LCD_SetBackColor(LCD_COLOR_WHITE);
+  BSP_LCD_DisplayStringAt(0, 112, (uint8_t*)"Starting Project ...", CENTER_MODE);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_RESET);
   while (1)
   {
     /* USER CODE END WHILE */
     MX_USB_HOST_Process();
 
+    static int spaceY = 112;
+    static int spaceX = 0;
+
     /* USER CODE BEGIN 3 */
+    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_5);
+    HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_3);
+    HAL_Delay(500);
+
+    if(HAL_GPIO_ReadPin (GPIOF, GPIO_PIN_10))// || HAL_GPIO_ReadPin (GPIOG, GPIO_PIN_13) || HAL_GPIO_ReadPin (GPIOF, GPIO_PIN_7) || HAL_GPIO_ReadPin (GPIOF, GPIO_PIN_6))
+        {
+    		spaceX += 10;
+        }
+        else if(HAL_GPIO_ReadPin (GPIOG, GPIO_PIN_13))
+        {
+        	spaceX -= 10;
+        }
+        else if(HAL_GPIO_ReadPin (GPIOF, GPIO_PIN_7))
+        {
+        	spaceY += 10;
+        }
+        else if(HAL_GPIO_ReadPin (GPIOF, GPIO_PIN_6))
+        {
+        	spaceY -= 10;
+        }
+
+    BSP_LCD_DisplayStringAt(spaceX, spaceY, (uint8_t*)"Starting Project ...", CENTER_MODE);
+
   }
   /* USER CODE END 3 */
 }
@@ -155,12 +199,12 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
   /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
@@ -179,7 +223,6 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
@@ -190,6 +233,23 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S_APB1|RCC_PERIPHCLK_DFSDM1
+                              |RCC_PERIPHCLK_SDIO|RCC_PERIPHCLK_CLK48
+                              |RCC_PERIPHCLK_FMPI2C1;
+  PeriphClkInitStruct.PLLI2S.PLLI2SN = 50;
+  PeriphClkInitStruct.PLLI2S.PLLI2SM = 12;
+  PeriphClkInitStruct.PLLI2S.PLLI2SR = 2;
+  PeriphClkInitStruct.PLLI2S.PLLI2SQ = 2;
+  PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48CLKSOURCE_PLLQ;
+  PeriphClkInitStruct.Dfsdm1ClockSelection = RCC_DFSDM1CLKSOURCE_APB2;
+  PeriphClkInitStruct.SdioClockSelection = RCC_SDIOCLKSOURCE_SYSCLK;
+  PeriphClkInitStruct.PLLI2SSelection = RCC_PLLI2SCLKSOURCE_PLLSRC;
+  PeriphClkInitStruct.I2sApb1ClockSelection = RCC_I2SAPB1CLKSOURCE_PLLI2S;
+  PeriphClkInitStruct.Fmpi2c1ClockSelection = RCC_FMPI2C1CLKSOURCE_APB;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();
   }
@@ -212,7 +272,6 @@ static void MX_ADC1_Init(void)
   /* USER CODE BEGIN ADC1_Init 1 */
 
   /* USER CODE END ADC1_Init 1 */
-
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc1.Instance = ADC1;
@@ -231,7 +290,6 @@ static void MX_ADC1_Init(void)
   {
     Error_Handler();
   }
-
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
   sConfig.Channel = ADC_CHANNEL_10;
@@ -264,7 +322,6 @@ static void MX_DAC_Init(void)
   /* USER CODE BEGIN DAC_Init 1 */
 
   /* USER CODE END DAC_Init 1 */
-
   /** DAC Initialization
   */
   hdac.Instance = DAC;
@@ -272,7 +329,6 @@ static void MX_DAC_Init(void)
   {
     Error_Handler();
   }
-
   /** DAC channel OUT1 config
   */
   sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
@@ -408,7 +464,6 @@ static void MX_FMPI2C1_Init(void)
   {
     Error_Handler();
   }
-
   /** Configure Analogue filter
   */
   if (HAL_FMPI2CEx_ConfigAnalogFilter(&hfmpi2c1, FMPI2C_ANALOGFILTER_ENABLE) != HAL_OK)
@@ -418,6 +473,40 @@ static void MX_FMPI2C1_Init(void)
   /* USER CODE BEGIN FMPI2C1_Init 2 */
 
   /* USER CODE END FMPI2C1_Init 2 */
+
+}
+
+/**
+  * @brief I2C2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C2_Init(void)
+{
+
+  /* USER CODE BEGIN I2C2_Init 0 */
+
+  /* USER CODE END I2C2_Init 0 */
+
+  /* USER CODE BEGIN I2C2_Init 1 */
+
+  /* USER CODE END I2C2_Init 1 */
+  hi2c2.Instance = I2C2;
+  hi2c2.Init.ClockSpeed = 100000;
+  hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c2.Init.OwnAddress1 = 0;
+  hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c2.Init.OwnAddress2 = 0;
+  hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C2_Init 2 */
+
+  /* USER CODE END I2C2_Init 2 */
 
 }
 
@@ -472,11 +561,11 @@ static void MX_QUADSPI_Init(void)
   /* USER CODE END QUADSPI_Init 1 */
   /* QUADSPI parameter configuration*/
   hqspi.Instance = QUADSPI;
-  hqspi.Init.ClockPrescaler = 0;
-  hqspi.Init.FifoThreshold = 4;
-  hqspi.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_HALFCYCLE;
-  hqspi.Init.FlashSize = 24;
-  hqspi.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_5_CYCLE;
+  hqspi.Init.ClockPrescaler = 255;
+  hqspi.Init.FifoThreshold = 1;
+  hqspi.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_NONE;
+  hqspi.Init.FlashSize = 1;
+  hqspi.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_1_CYCLE;
   hqspi.Init.ClockMode = QSPI_CLOCK_MODE_0;
   hqspi.Init.FlashID = QSPI_FLASH_ID_1;
   hqspi.Init.DualFlash = QSPI_DUALFLASH_DISABLE;
@@ -621,7 +710,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, LCD_CTP_RST_Pin|LCD_TE_Pin|WIFI_WKUP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOG, USB_OTG_FS_PWR_EN_Pin|ARD_D2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(USB_OTG_FS_PWR_EN_GPIO_Port, USB_OTG_FS_PWR_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : LED1_RED_Pin MEMS_LED_Pin LCD_BL_CTRL_Pin */
   GPIO_InitStruct.Pin = LED1_RED_Pin|MEMS_LED_Pin|LCD_BL_CTRL_Pin;
@@ -638,21 +727,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF3_TIM9;
   HAL_GPIO_Init(ARD_D5_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : ARD_D0_Pin ARD_D1_Pin */
-  GPIO_InitStruct.Pin = ARD_D0_Pin|ARD_D1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  /*Configure GPIO pins : PF6 PF7 PF10 */
+  GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7|GPIO_PIN_10;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF8_UART7;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : ARD_D3_Pin */
-  GPIO_InitStruct.Pin = ARD_D3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  GPIO_InitStruct.Alternate = GPIO_AF2_TIM5;
-  HAL_GPIO_Init(ARD_D3_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : CTP_INT_Pin */
   GPIO_InitStruct.Pin = CTP_INT_Pin;
@@ -687,14 +766,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(SD_Detect_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : ARD_D15_Pin ARD_D14_Pin */
-  GPIO_InitStruct.Pin = ARD_D15_Pin|ARD_D14_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF4_I2C2;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
   /*Configure GPIO pin : ARD_D13_Pin */
   GPIO_InitStruct.Pin = ARD_D13_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -716,12 +787,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : USB_OTG_FS_PWR_EN_Pin ARD_D2_Pin */
-  GPIO_InitStruct.Pin = USB_OTG_FS_PWR_EN_Pin|ARD_D2_Pin;
+  /*Configure GPIO pin : USB_OTG_FS_PWR_EN_Pin */
+  GPIO_InitStruct.Pin = USB_OTG_FS_PWR_EN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+  HAL_GPIO_Init(USB_OTG_FS_PWR_EN_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : ARD_D10_Pin */
   GPIO_InitStruct.Pin = ARD_D10_Pin;
@@ -730,6 +801,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
   HAL_GPIO_Init(ARD_D10_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PG13 */
+  GPIO_InitStruct.Pin = GPIO_PIN_13;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
   /*Configure GPIO pins : ARD_D12_Pin ARD_D11_Pin */
   GPIO_InitStruct.Pin = ARD_D12_Pin|ARD_D11_Pin;
@@ -781,7 +858,7 @@ static void MX_FSMC_Init(void)
   hsram1.Init.BurstAccessMode = FSMC_BURST_ACCESS_MODE_DISABLE;
   hsram1.Init.WaitSignalPolarity = FSMC_WAIT_SIGNAL_POLARITY_LOW;
   hsram1.Init.WaitSignalActive = FSMC_WAIT_TIMING_BEFORE_WS;
-  hsram1.Init.WriteOperation = FSMC_WRITE_OPERATION_DISABLE;
+  hsram1.Init.WriteOperation = FSMC_WRITE_OPERATION_ENABLE;
   hsram1.Init.WaitSignal = FSMC_WAIT_SIGNAL_DISABLE;
   hsram1.Init.ExtendedMode = FSMC_EXTENDED_MODE_DISABLE;
   hsram1.Init.AsynchronousWait = FSMC_ASYNCHRONOUS_WAIT_DISABLE;
@@ -856,10 +933,7 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
-  {
-  }
+
   /* USER CODE END Error_Handler_Debug */
 }
 
@@ -875,7 +949,9 @@ void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+     tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

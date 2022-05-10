@@ -48,7 +48,7 @@ Drivers/BSP/STM32F413H-Discovery \
 Drivers/STM32F4xx_HAL_Driver/Src \
 FATFS/App \
 FATFS/Target \
-Middlewares/ST/STM32_USB_Host_Library/Class/CDC/Src \
+Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Src \
 Middlewares/ST/STM32_USB_Host_Library/Core/Src \
 Middlewares/Third_Party/FatFs/src \
 Middlewares/Third_Party/FatFs/src/option \

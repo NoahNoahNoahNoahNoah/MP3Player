@@ -48,7 +48,8 @@ Middlewares/Third_Party/FatFs/src/ff.o: \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_fmpi2c.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_fmpi2c_ex.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dfsdm.h \
- ../FATFS/Target/bsp_driver_sd.h ../FATFS/Target/fatfs_platform.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h \
+ ../USB_HOST/Target/usbh_conf.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h \
  ../Core/Inc/FreeRTOSConfig.h \
@@ -60,6 +61,14 @@ Middlewares/Third_Party/FatFs/src/ff.o: \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_def.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ioreq.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_pipes.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ctlreq.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc_bot.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc_scsi.h \
  ../Middlewares/Third_Party/FatFs/src/diskio.h
 ../Middlewares/Third_Party/FatFs/src/ff.h:
 ../Middlewares/Third_Party/FatFs/src/integer.h:
@@ -111,8 +120,8 @@ Middlewares/Third_Party/FatFs/src/ff.o: \
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_fmpi2c.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_fmpi2c_ex.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dfsdm.h:
-../FATFS/Target/bsp_driver_sd.h:
-../FATFS/Target/fatfs_platform.h:
+../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h:
+../USB_HOST/Target/usbh_conf.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h:
 ../Core/Inc/FreeRTOSConfig.h:
@@ -124,4 +133,12 @@ Middlewares/Third_Party/FatFs/src/ff.o: \
 ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
+../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_def.h:
+../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ioreq.h:
+../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h:
+../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_pipes.h:
+../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ctlreq.h:
+../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc.h:
+../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc_bot.h:
+../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc_scsi.h:
 ../Middlewares/Third_Party/FatFs/src/diskio.h:

@@ -64,7 +64,9 @@ USB_HOST/App/usb_host.o: ../USB_HOST/App/usb_host.c \
  ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h \
  ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_pipes.h \
  ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ctlreq.h \
- ../Middlewares/ST/STM32_USB_Host_Library/Class/CDC/Inc/usbh_cdc.h
+ ../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc_bot.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc_scsi.h
 ../USB_HOST/App/usb_host.h:
 ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h:
 ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f413xx.h:
@@ -131,4 +133,6 @@ USB_HOST/App/usb_host.o: ../USB_HOST/App/usb_host.c \
 ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h:
 ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_pipes.h:
 ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ctlreq.h:
-../Middlewares/ST/STM32_USB_Host_Library/Class/CDC/Inc/usbh_cdc.h:
+../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc.h:
+../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc_bot.h:
+../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc_scsi.h:

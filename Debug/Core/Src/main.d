@@ -58,10 +58,19 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
  ../FATFS/App/fatfs.h ../Middlewares/Third_Party/FatFs/src/ff.h \
  ../Middlewares/Third_Party/FatFs/src/integer.h ../FATFS/Target/ffconf.h \
- ../FATFS/Target/bsp_driver_sd.h ../FATFS/Target/fatfs_platform.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h \
+ ../USB_HOST/Target/usbh_conf.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_def.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ioreq.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_pipes.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ctlreq.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc_bot.h \
+ ../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc_scsi.h \
  ../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h \
  ../Middlewares/Third_Party/FatFs/src/diskio.h \
- ../Middlewares/Third_Party/FatFs/src/ff.h ../FATFS/Target/sd_diskio.h \
+ ../Middlewares/Third_Party/FatFs/src/ff.h ../FATFS/Target/usbh_diskio.h \
  ../USB_HOST/App/usb_host.h \
  ../Drivers/BSP/stm32f413H-Discovery/stm32f413h_discovery_lcd.h \
  ../Drivers/BSP/stm32f413H-Discovery/stm32f413h_discovery.h \
@@ -130,12 +139,20 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Middlewares/Third_Party/FatFs/src/ff.h:
 ../Middlewares/Third_Party/FatFs/src/integer.h:
 ../FATFS/Target/ffconf.h:
-../FATFS/Target/bsp_driver_sd.h:
-../FATFS/Target/fatfs_platform.h:
+../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h:
+../USB_HOST/Target/usbh_conf.h:
+../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_def.h:
+../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ioreq.h:
+../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_core.h:
+../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_pipes.h:
+../Middlewares/ST/STM32_USB_Host_Library/Core/Inc/usbh_ctlreq.h:
+../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc.h:
+../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc_bot.h:
+../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc/usbh_msc_scsi.h:
 ../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h:
 ../Middlewares/Third_Party/FatFs/src/diskio.h:
 ../Middlewares/Third_Party/FatFs/src/ff.h:
-../FATFS/Target/sd_diskio.h:
+../FATFS/Target/usbh_diskio.h:
 ../USB_HOST/App/usb_host.h:
 ../Drivers/BSP/stm32f413H-Discovery/stm32f413h_discovery_lcd.h:
 ../Drivers/BSP/stm32f413H-Discovery/stm32f413h_discovery.h:

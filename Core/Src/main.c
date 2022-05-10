@@ -27,11 +27,12 @@
 /* USER CODE BEGIN Includes */
 #include "stm32f413h_discovery_lcd.h"
 #include <string.h>
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+extern ApplicationTypeDef Appli_state;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -75,11 +76,18 @@ const osThreadAttr_t defaultTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
   .stack_size = 128 * 4
 };
-/* Definitions for initializeSDCar */
-osThreadId_t initializeSDCarHandle;
-const osThreadAttr_t initializeSDCar_attributes = {
-  .name = "initializeSDCar",
+/* Definitions for mountUSB */
+osThreadId_t mountUSBHandle;
+const osThreadAttr_t mountUSB_attributes = {
+  .name = "mountUSB",
   .priority = (osPriority_t) osPriorityHigh,
+  .stack_size = 128 * 4
+};
+/* Definitions for readUSB */
+osThreadId_t readUSBHandle;
+const osThreadAttr_t readUSB_attributes = {
+  .name = "readUSB",
+  .priority = (osPriority_t) osPriorityLow,
   .stack_size = 128 * 4
 };
 /* Definitions for audioBufferMutex */
@@ -117,7 +125,8 @@ static void MX_UART10_Init(void);
 static void MX_USART6_UART_Init(void);
 static void MX_I2C2_Init(void);
 void StartDefaultTask(void *argument);
-void StartInitializeSDCard(void *argument);
+void StartMountUSB(void *argument);
+void StartReadUSB(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -125,7 +134,10 @@ void StartInitializeSDCard(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+bool playMusic = false;
+bool pauseMusic = false;
+bool stopMusic = false;
+bool USBMounted = false;
 /* USER CODE END 0 */
 
 /**
@@ -217,8 +229,11 @@ int main(void)
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
-  /* creation of initializeSDCar */
-  initializeSDCarHandle = osThreadNew(StartInitializeSDCard, NULL, &initializeSDCar_attributes);
+  /* creation of mountUSB */
+  mountUSBHandle = osThreadNew(StartMountUSB, NULL, &mountUSB_attributes);
+
+  /* creation of readUSB */
+  readUSBHandle = osThreadNew(StartReadUSB, NULL, &readUSB_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -343,7 +358,7 @@ static void MX_ADC1_Init(void)
   }
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_10;
+  sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = 1;
   sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -652,6 +667,10 @@ static void MX_SDIO_SD_Init(void)
   hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
   hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
   hsd.Init.ClockDiv = 0;
+  if (HAL_SD_Init(&hsd) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN SDIO_Init 2 */
 
   /* USER CODE END SDIO_Init 2 */
@@ -747,7 +766,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOE, LED1_RED_Pin|MEMS_LED_Pin|LCD_BL_CTRL_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LED2_GREEN_GPIO_Port, LED2_GREEN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0|LED2_GREEN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LCD_CTP_RST_Pin|LCD_TE_Pin|WIFI_WKUP_Pin, GPIO_PIN_RESET);
@@ -776,6 +795,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : PC0 LED2_GREEN_Pin */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|LED2_GREEN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
   /*Configure GPIO pin : CTP_INT_Pin */
   GPIO_InitStruct.Pin = CTP_INT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
@@ -787,13 +813,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B_USER_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : LED2_GREEN_Pin */
-  GPIO_InitStruct.Pin = LED2_GREEN_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LED2_GREEN_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : ARD_D6_Pin */
   GPIO_InitStruct.Pin = ARD_D6_Pin;
@@ -980,49 +999,64 @@ void StartDefaultTask(void *argument)
   /* init code for USB_HOST */
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-  for(;;)
-  {
-	  HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_3);
-    osDelay(250);
-  }
+  /* USER CODE BEGIN StartMountUSB */
+  	USBMounted = false;
+    /* Infinite loop */
+    for(;;)
+    {
+  	  if(Appli_state == APPLICATION_START)
+  		  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);
+  	  else if(Appli_state == APPLICATION_DISCONNECT)
+  		  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);
+
+  	  if(Appli_state == APPLICATION_READY)
+  	  {
+  		  if(!USBMounted)
+  		  {
+  			  f_mount(&USBHFatFS, (const TCHAR*)USBHPath, 0);
+  			  USBMounted = true;
+  		  }
+  	  }
+  	  else
+  		  USBMounted = false;
+    }
   /* USER CODE END 5 */
 }
 
-/* USER CODE BEGIN Header_StartInitializeSDCard */
+/* USER CODE BEGIN Header_StartMountUSB */
 /**
-* @brief Function implementing the initializeSDCar thread.
+* @brief Function implementing the mountUSB thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartInitializeSDCard */
-void StartInitializeSDCard(void *argument)
+/* USER CODE END Header_StartMountUSB */
+void StartMountUSB(void *argument)
 {
-  /* USER CODE BEGIN StartInitializeSDCard */
+
+  for(;;)
+    {
+  	  HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_3);
+      osDelay(333);
+    }
+  /* USER CODE END StartMountUSB */
+}
+
+/* USER CODE BEGIN Header_StartReadUSB */
+/**
+* @brief Function implementing the readUSB thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartReadUSB */
+void StartReadUSB(void *argument)
+{
+  /* USER CODE BEGIN StartReadUSB */
   /* Infinite loop */
-	FATFS *fs;           /* Filesystem object */
-	FILE fil;
-    FRESULT res;        /* API result code */
-    BYTE work[8]; /* Work area (larger is better for processing time) */
-    char line[100];
-
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);
-   	f_mount(&fs, "", 0);
-   	res = f_open(&fil, "test1.txt", FA_READ);
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);
-   	if(res == FR_OK)
-   	{
-
-   		for(;;)
-   		{
-    		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_5);
-    		osDelay(200);
-    	}
-   	}
-
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);
-    free(fs);
-  /* USER CODE END StartInitializeSDCard */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartReadUSB */
 }
 
 /**

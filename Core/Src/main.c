@@ -26,6 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stm32f413h_discovery_lcd.h"
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -74,10 +75,12 @@ const osThreadAttr_t defaultTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
   .stack_size = 128 * 4
 };
-/* Definitions for readSDCardTimer */
-osTimerId_t readSDCardTimerHandle;
-const osTimerAttr_t readSDCardTimer_attributes = {
-  .name = "readSDCardTimer"
+/* Definitions for initializeSDCar */
+osThreadId_t initializeSDCarHandle;
+const osThreadAttr_t initializeSDCar_attributes = {
+  .name = "initializeSDCar",
+  .priority = (osPriority_t) osPriorityHigh,
+  .stack_size = 128 * 4
 };
 /* Definitions for audioBufferMutex */
 osMutexId_t audioBufferMutexHandle;
@@ -114,7 +117,7 @@ static void MX_UART10_Init(void);
 static void MX_USART6_UART_Init(void);
 static void MX_I2C2_Init(void);
 void StartDefaultTask(void *argument);
-void readSDCardCallback(void *argument);
+void StartInitializeSDCard(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -202,10 +205,6 @@ int main(void)
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
 
-  /* Create the timer(s) */
-  /* creation of readSDCardTimer */
-  readSDCardTimerHandle = osTimerNew(readSDCardCallback, osTimerPeriodic, NULL, &readSDCardTimer_attributes);
-
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
@@ -217,6 +216,9 @@ int main(void)
   /* Create the thread(s) */
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
+  /* creation of initializeSDCar */
+  initializeSDCarHandle = osThreadNew(StartInitializeSDCard, NULL, &initializeSDCar_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -981,21 +983,46 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	  HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_3);
+    osDelay(250);
   }
   /* USER CODE END 5 */
 }
 
-/* readSDCardCallback function */
-void readSDCardCallback(void *argument)
+/* USER CODE BEGIN Header_StartInitializeSDCard */
+/**
+* @brief Function implementing the initializeSDCar thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartInitializeSDCard */
+void StartInitializeSDCard(void *argument)
 {
-  /* USER CODE BEGIN readSDCardCallback */
-	FRESULT fresult = f_mount(&fs, "/", 1);
-	if( fresult != FR_OK )
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);
-	else
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);
-  /* USER CODE END readSDCardCallback */
+  /* USER CODE BEGIN StartInitializeSDCard */
+  /* Infinite loop */
+	FATFS *fs;           /* Filesystem object */
+	FILE fil;
+    FRESULT res;        /* API result code */
+    BYTE work[8]; /* Work area (larger is better for processing time) */
+    char line[100];
+
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);
+   	f_mount(&fs, "", 0);
+   	res = f_open(&fil, "test1.txt", FA_READ);
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);
+   	if(res == FR_OK)
+   	{
+
+   		for(;;)
+   		{
+    		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_5);
+    		osDelay(200);
+    	}
+   	}
+
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);
+    free(fs);
+  /* USER CODE END StartInitializeSDCard */
 }
 
 /**
